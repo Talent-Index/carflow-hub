@@ -1,9 +1,15 @@
-import { Car, Gift, Clock, DollarSign, Star, Droplets, Wrench } from 'lucide-react';
+import { useState } from 'react';
+import { Car, Gift, Clock, DollarSign, Star, Droplets, Wrench, Bell, Plus } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Button } from '@/components/ui/button';
+import { VehicleCard } from '@/components/dashboard/VehicleCard';
+import { ServiceReminder } from '@/components/dashboard/ServiceReminder';
+import { AddVehicleDialog } from '@/components/dashboard/AddVehicleDialog';
 import { mockVehicles, mockLoyaltyWallets, mockServiceSessions, mockWashSessions } from '@/lib/mock-data';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { Vehicle } from '@/types';
 
 const tierColors = {
   bronze: 'text-orange-400',
@@ -12,14 +18,86 @@ const tierColors = {
   platinum: 'text-purple-400',
 };
 
+// Calculate maintenance rating based on service history
+const calculateMaintenanceRating = (vehicleId: string): number => {
+  const vehicleServices = mockServiceSessions.filter(s => s.vehicleId === vehicleId);
+  if (vehicleServices.length === 0) return 50; // New vehicle, neutral rating
+  
+  const completedOnTime = vehicleServices.filter(s => s.status === 'completed').length;
+  const total = vehicleServices.length;
+  const baseRating = (completedOnTime / total) * 100;
+  
+  // Bonus for regular washes
+  const washes = mockWashSessions.filter(w => w.vehicleId === vehicleId && w.status === 'completed').length;
+  const washBonus = Math.min(washes * 2, 10);
+  
+  return Math.min(Math.round(baseRating + washBonus), 100);
+};
+
+// Generate reminder data
+const generateReminders = (vehicles: Vehicle[]) => {
+  const reminders = [
+    {
+      vehicleId: 'v-1',
+      vehicleName: '2023 Tesla Model 3',
+      serviceType: 'Oil Change',
+      dueIn: 'Overdue by 500 miles',
+      status: 'overdue' as const,
+    },
+    {
+      vehicleId: 'v-2',
+      vehicleName: '2022 BMW M4',
+      serviceType: 'Tire Rotation',
+      dueIn: 'Due in 3 days',
+      status: 'due_soon' as const,
+    },
+    {
+      vehicleId: 'v-1',
+      vehicleName: '2023 Tesla Model 3',
+      serviceType: 'Brake Inspection',
+      dueIn: 'Due in 2 weeks',
+      status: 'upcoming' as const,
+    },
+  ];
+
+  return reminders.filter(r => vehicles.some(v => v.id === r.vehicleId));
+};
+
 export default function CustomerDashboard() {
   const loyalty = mockLoyaltyWallets[0];
-  const vehicles = mockVehicles.filter((v) => v.customerId === 'customer-1');
+  const [vehicles, setVehicles] = useState<Vehicle[]>(
+    mockVehicles.filter((v) => v.customerId === 'customer-1')
+  );
 
   const allSessions = [
     ...mockServiceSessions.map((s) => ({ ...s, sessionType: 'service' as const })),
     ...mockWashSessions.map((s) => ({ ...s, sessionType: 'wash' as const })),
   ].filter((s) => vehicles.some((v) => v.id === s.vehicleId));
+
+  const reminders = generateReminders(vehicles);
+
+  const handleAddVehicle = (newVehicle: {
+    make: string;
+    model: string;
+    year: number;
+    licensePlate: string;
+    color: string;
+  }) => {
+    const vehicle: Vehicle = {
+      id: `v-${Date.now()}`,
+      customerId: 'customer-1',
+      ...newVehicle,
+    };
+    setVehicles([...vehicles, vehicle]);
+  };
+
+  const handleViewHistory = (vehicleId: string) => {
+    toast.info('Vehicle history view coming soon!');
+  };
+
+  const handleScheduleService = () => {
+    toast.info('Redirecting to service booking...');
+  };
 
   return (
     <DashboardLayout title="My Dashboard" subtitle="Track your vehicles, services, and rewards">
@@ -46,37 +124,53 @@ export default function CustomerDashboard() {
         />
       </div>
 
+      {/* Reminders Section */}
+      {reminders.filter(r => r.status !== 'upcoming').length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="w-5 h-5 text-warning" />
+            <h2 className="text-xl font-semibold text-foreground">Service Reminders</h2>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {reminders
+              .filter(r => r.status !== 'upcoming')
+              .map((reminder, i) => (
+                <ServiceReminder
+                  key={i}
+                  vehicleName={reminder.vehicleName}
+                  serviceType={reminder.serviceType}
+                  dueIn={reminder.dueIn}
+                  status={reminder.status}
+                  onSchedule={handleScheduleService}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Vehicles */}
         <div className="lg:col-span-2">
-          <div className="bg-card rounded-xl border border-border p-6 mb-8">
+          <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-foreground">My Vehicles</h2>
-              <Button variant="outline" size="sm">
-                Add Vehicle
-              </Button>
+              <AddVehicleDialog onAdd={handleAddVehicle}>
+                <Button variant="outline" size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Vehicle
+                </Button>
+              </AddVehicleDialog>
             </div>
-            <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
               {vehicles.map((vehicle) => (
-                <div
+                <VehicleCard
                   key={vehicle.id}
-                  className="flex items-center gap-4 p-4 rounded-lg bg-background border border-border hover:border-primary/30 transition-colors"
-                >
-                  <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Car className="w-7 h-7 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-foreground">
-                      {vehicle.year} {vehicle.make} {vehicle.model}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {vehicle.licensePlate} • {vehicle.color}
-                    </p>
-                  </div>
-                  <Button variant="ghost" size="sm">
-                    View History
-                  </Button>
-                </div>
+                  vehicle={vehicle}
+                  services={mockServiceSessions.filter(s => s.vehicleId === vehicle.id)}
+                  washes={mockWashSessions.filter(w => w.vehicleId === vehicle.id)}
+                  maintenanceRating={calculateMaintenanceRating(vehicle.id)}
+                  onViewHistory={() => handleViewHistory(vehicle.id)}
+                />
               ))}
             </div>
           </div>
@@ -110,8 +204,10 @@ export default function CustomerDashboard() {
                       ${session.priceUSDC.toFixed(2)}
                     </span>
                     <span
-                      className={`text-xs ${
-                        session.paymentStatus === 'paid' ? 'text-success' : 'text-warning'
+                      className={`text-xs px-2 py-0.5 rounded-full ${
+                        session.paymentStatus === 'paid' 
+                          ? 'bg-success/10 text-success' 
+                          : 'bg-warning/10 text-warning'
                       }`}
                     >
                       {session.paymentStatus}
@@ -144,7 +240,7 @@ export default function CustomerDashboard() {
             {/* Progress to next tier */}
             <div className="mb-6">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-muted-foreground">Progress to Gold</span>
+                <span className="text-muted-foreground">Progress to Platinum</span>
                 <span className="text-foreground">65%</span>
               </div>
               <div className="h-2 bg-background rounded-full overflow-hidden">
@@ -155,7 +251,7 @@ export default function CustomerDashboard() {
               </div>
             </div>
 
-            <Button className="w-full" variant="outline">
+            <Button className="w-full" variant="outline" onClick={() => toast.info('Rewards catalog coming soon!')}>
               View Rewards
             </Button>
           </div>
@@ -168,6 +264,22 @@ export default function CustomerDashboard() {
             <Button asChild className="w-full" variant="outline">
               <Link to="/services">Schedule Service</Link>
             </Button>
+          </div>
+
+          {/* Upcoming Reminders */}
+          <div className="mt-6 bg-card rounded-xl border border-border p-4">
+            <h3 className="font-medium text-foreground mb-3 text-sm">Upcoming Maintenance</h3>
+            <div className="space-y-2">
+              {reminders
+                .filter(r => r.status === 'upcoming')
+                .slice(0, 2)
+                .map((reminder, i) => (
+                  <div key={i} className="text-xs text-muted-foreground flex justify-between">
+                    <span>{reminder.serviceType}</span>
+                    <span>{reminder.dueIn}</span>
+                  </div>
+                ))}
+            </div>
           </div>
         </div>
       </div>

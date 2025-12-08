@@ -27,7 +27,7 @@ export function Footer() {
               <li><Link to="/services" className="hover:text-primary transition-colors">Car Service</Link></li>
               <li><Link to="/wash" className="hover:text-primary transition-colors">Car Wash</Link></li>
               <li><Link to="/pricing" className="hover:text-primary transition-colors">Pricing</Link></li>
-              <li><Link to="/locations" className="hover:text-primary transition-colors">Locations</Link></li>
+              <li><Link to="/login" className="hover:text-primary transition-colors">Find Location</Link></li>
             </ul>
           </div>
 
@@ -35,10 +35,10 @@ export function Footer() {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link to="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link to="/careers" className="hover:text-primary transition-colors">Careers</Link></li>
-              <li><Link to="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
-              <li><Link to="/blog" className="hover:text-primary transition-colors">Blog</Link></li>
+              <li><Link to="/" className="hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/" className="hover:text-primary transition-colors">Careers</Link></li>
+              <li><Link to="/" className="hover:text-primary transition-colors">Contact</Link></li>
+              <li><Link to="/" className="hover:text-primary transition-colors">Blog</Link></li>
             </ul>
           </div>
 
@@ -59,8 +59,8 @@ export function Footer() {
             © 2024 AutoX402. Built on Avalanche. Made by Ruben Hassid.
           </p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
+            <Link to="/" className="hover:text-primary transition-colors">Privacy</Link>
+            <Link to="/" className="hover:text-primary transition-colors">Terms</Link>
           </div>
         </div>
       </div>
