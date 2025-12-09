@@ -56,7 +56,7 @@ export function Footer() {
 
         <div className="border-t border-border mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2024 AutoX402. Built on Avalanche. Made by Ruben Hassid.
+            Established in 2025. Own your car. Love your car &lt;3
           </p>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <Link to="/" className="hover:text-primary transition-colors">Privacy</Link>
