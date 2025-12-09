@@ -14,7 +14,211 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customer_loyalty: {
+        Row: {
+          created_at: string
+          customer_id: string
+          id: string
+          points: number
+          service_count: number
+          tier: string
+          total_spent_usdc: number
+          updated_at: string
+          wash_count: number
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          id?: string
+          points?: number
+          service_count?: number
+          tier?: string
+          total_spent_usdc?: number
+          updated_at?: string
+          wash_count?: number
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          id?: string
+          points?: number
+          service_count?: number
+          tier?: string
+          total_spent_usdc?: number
+          updated_at?: string
+          wash_count?: number
+        }
+        Relationships: []
+      }
+      operator_rewards: {
+        Row: {
+          created_at: string
+          earned_usdc: number
+          id: string
+          job_count: number
+          operator_id: string
+          paid_usdc: number
+          pending_usdc: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          earned_usdc?: number
+          id?: string
+          job_count?: number
+          operator_id: string
+          paid_usdc?: number
+          pending_usdc?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          earned_usdc?: number
+          id?: string
+          job_count?: number
+          operator_id?: string
+          paid_usdc?: number
+          pending_usdc?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payment_sessions: {
+        Row: {
+          amount: number
+          asset: string
+          created_at: string
+          customer_id: string | null
+          id: string
+          resource: string
+          settled_at: string | null
+          status: string
+          tx_hash: string | null
+        }
+        Insert: {
+          amount: number
+          asset?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          resource: string
+          settled_at?: string | null
+          status?: string
+          tx_hash?: string | null
+        }
+        Update: {
+          amount?: number
+          asset?: string
+          created_at?: string
+          customer_id?: string | null
+          id?: string
+          resource?: string
+          settled_at?: string | null
+          status?: string
+          tx_hash?: string | null
+        }
+        Relationships: []
+      }
+      service_sessions: {
+        Row: {
+          branch_id: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          id: string
+          mileage: number | null
+          operator_id: string
+          payment_session_id: string | null
+          price_usdc: number
+          service_type: string
+          status: string
+          vehicle_id: string
+        }
+        Insert: {
+          branch_id: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          mileage?: number | null
+          operator_id: string
+          payment_session_id?: string | null
+          price_usdc: number
+          service_type?: string
+          status?: string
+          vehicle_id: string
+        }
+        Update: {
+          branch_id?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          mileage?: number | null
+          operator_id?: string
+          payment_session_id?: string | null
+          price_usdc?: number
+          service_type?: string
+          status?: string
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_sessions_payment_session_id_fkey"
+            columns: ["payment_session_id"]
+            isOneToOne: false
+            referencedRelation: "payment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wash_sessions: {
+        Row: {
+          branch_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          operator_id: string
+          payment_session_id: string | null
+          price_usdc: number
+          status: string
+          vehicle_id: string
+          wash_type: string
+        }
+        Insert: {
+          branch_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          operator_id: string
+          payment_session_id?: string | null
+          price_usdc: number
+          status?: string
+          vehicle_id: string
+          wash_type?: string
+        }
+        Update: {
+          branch_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          operator_id?: string
+          payment_session_id?: string | null
+          price_usdc?: number
+          status?: string
+          vehicle_id?: string
+          wash_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wash_sessions_payment_session_id_fkey"
+            columns: ["payment_session_id"]
+            isOneToOne: false
+            referencedRelation: "payment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

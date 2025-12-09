@@ -1,14 +1,13 @@
 import { useState } from 'react';
-import { DollarSign, Clock, Car, Droplets, Plus, CheckCircle } from 'lucide-react';
+import { DollarSign, Clock, Car, Droplets, Plus, CheckCircle, Wrench } from 'lucide-react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Button } from '@/components/ui/button';
-import { mockOperatorRewards, mockWashSessions, mockServiceSessions, washPrices } from '@/lib/mock-data';
-import { useToast } from '@/hooks/use-toast';
+import { StartWashButton } from '@/components/payment/StartWashButton';
+import { StartServiceButton } from '@/components/payment/StartServiceButton';
+import { mockOperatorRewards, mockWashSessions, mockServiceSessions, washPrices, servicePrices } from '@/lib/mock-data';
 
 export default function OperatorDashboard() {
-  const [isProcessing, setIsProcessing] = useState(false);
-  const { toast } = useToast();
   const rewards = mockOperatorRewards[0];
 
   const todaysJobs = [
@@ -16,15 +15,9 @@ export default function OperatorDashboard() {
     ...mockServiceSessions.filter((s) => s.operatorId === 'operator-1'),
   ];
 
-  const handleNewWash = async (type: keyof typeof washPrices) => {
-    setIsProcessing(true);
-    // Simulate x402 payment flow
-    await new Promise((r) => setTimeout(r, 1500));
-    setIsProcessing(false);
-    toast({
-      title: 'Wash Started',
-      description: `${type.charAt(0).toUpperCase() + type.slice(1)} wash initiated. Payment pending.`,
-    });
+  const handleJobSuccess = (data: unknown) => {
+    console.log('Job started successfully:', data);
+    // In a real app, refresh the jobs list here
   };
 
   return (
@@ -54,87 +47,99 @@ export default function OperatorDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Quick Actions */}
+        {/* Quick Actions - Wash */}
         <div className="lg:col-span-1">
           <div className="bg-card rounded-xl border border-border p-6">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Start New Job</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Droplets className="h-5 w-5 text-primary" />
+              Start Car Wash
+            </h2>
             <div className="space-y-3">
-              {(Object.entries(washPrices) as [keyof typeof washPrices, number][]).map(
-                ([type, price]) => (
-                  <button
-                    key={type}
-                    onClick={() => handleNewWash(type)}
-                    disabled={isProcessing}
-                    className="w-full flex items-center justify-between p-4 rounded-lg bg-background border border-border hover:border-primary/50 transition-all group disabled:opacity-50"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <Droplets className="w-5 h-5 text-primary" />
-                      </div>
-                      <span className="font-medium text-foreground capitalize">{type} Wash</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        ${price.toFixed(2)}
-                      </span>
-                      <Plus className="w-4 h-4 text-primary" />
-                    </div>
-                  </button>
-                )
-              )}
+              {(['basic', 'standard', 'premium', 'deluxe'] as const).map((type) => (
+                <StartWashButton
+                  key={type}
+                  vehicleId="demo-vehicle-001"
+                  branchId="branch-1"
+                  operatorId="operator-1"
+                  washType={type}
+                  customerId="customer-1"
+                  onSuccess={handleJobSuccess}
+                  className="w-full justify-between"
+                  variant="outline"
+                />
+              ))}
             </div>
+          </div>
+        </div>
 
-            <div className="border-t border-border mt-6 pt-6">
-              <Button className="w-full" variant="outline">
-                <Car className="w-4 h-4 mr-2" />
-                New Service Job
-              </Button>
+        {/* Quick Actions - Service */}
+        <div className="lg:col-span-1">
+          <div className="bg-card rounded-xl border border-border p-6">
+            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Wrench className="h-5 w-5 text-secondary" />
+              Start Service
+            </h2>
+            <div className="space-y-3">
+              {(['oil_change', 'tire_rotation', 'brake_service', 'inspection'] as const).map((type) => (
+                <StartServiceButton
+                  key={type}
+                  vehicleId="demo-vehicle-001"
+                  branchId="branch-1"
+                  operatorId="operator-1"
+                  serviceType={type}
+                  customerId="customer-1"
+                  onSuccess={handleJobSuccess}
+                  className="w-full justify-between"
+                  variant="outline"
+                  size="sm"
+                />
+              ))}
             </div>
           </div>
         </div>
 
         {/* Today's Jobs */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-1">
           <div className="bg-card rounded-xl border border-border p-6">
             <h2 className="text-xl font-semibold text-foreground mb-4">Today's Jobs</h2>
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[400px] overflow-y-auto">
               {todaysJobs.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No jobs yet today</p>
               ) : (
                 todaysJobs.map((job) => (
                   <div
                     key={job.id}
-                    className="flex items-center justify-between p-4 rounded-lg bg-background border border-border"
+                    className="flex items-center justify-between p-3 rounded-lg bg-background border border-border"
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
                       {job.id.startsWith('ws') ? (
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Droplets className="w-5 h-5 text-primary" />
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Droplets className="w-4 h-4 text-primary" />
                         </div>
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                          <Car className="w-5 h-5 text-secondary" />
+                        <div className="w-8 h-8 rounded-lg bg-secondary/10 flex items-center justify-center">
+                          <Car className="w-4 h-4 text-secondary" />
                         </div>
                       )}
                       <div>
-                        <h3 className="font-medium text-foreground capitalize">
+                        <h3 className="text-sm font-medium text-foreground capitalize">
                           {job.id.startsWith('ws') ? 'Car Wash' : 'Service'}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {new Date(job.createdAt).toLocaleTimeString()}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-foreground">
                         ${job.priceUSDC.toFixed(2)}
                       </span>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           job.status === 'completed'
-                            ? 'bg-success/10 text-success'
+                            ? 'bg-green-500/10 text-green-500'
                             : job.status === 'in_progress'
-                            ? 'bg-warning/10 text-warning'
+                            ? 'bg-yellow-500/10 text-yellow-500'
                             : 'bg-muted text-muted-foreground'
                         }`}
                       >
